@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geoserver
+  namespace: default
+  labels:
+    app: geoserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geoserver
+  template:
+    metadata:
+      labels:
+        app: geoserver
+        logging: enabled
+    spec:
+      containers:
+        - name: geoserver
+          image: kartoza/geoserver
+          imagePullPolicy: Always
+          env:
+          - name: SAMPLE_DATA
+            value: "true"
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080          
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: geoserver
+  namespace: default
+spec:
+  selector:
+    app: geoserver
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+
+kind: Ingress
+apiVersion: networking.k8s.io/v1beta1
+metadata:
+  name: geoserver
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 0m
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+spec:
+  tls:
+    host:
+    - geoserver.husoyargic.com
+  rules:
+    - host: geoserver.husoyargic.com
+      http:
+        paths:
+          - path: "/"
+            backend:
+              serviceName: geoserver
+              servicePort: 8080
+
+---
+
