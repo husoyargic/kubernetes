@@ -11,6 +11,7 @@ apt-cache madison docker-ce
 apt-cache madison docker-ce
 
 ---------------------------------------------Kurulum master and Node-----------------------
+
 swapoff -a
 
 apt-get update && sudo apt-get install -y apt-transport-https curl
@@ -24,6 +25,7 @@ apt-get install -y docker.io kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
 -------------------------Master------------------------
+
 kubeadm init --> swapoff
 
 Your Kubernetes control-plane has initialized successfully!
@@ -53,9 +55,11 @@ NAME   STATUS     ROLES                  AGE   VERSION
 huso   NotReady   control-plane,master   10m   v1.20.1
 
 ------------------------loglama gibi node hakkında bilgilieri veriyor ------------------------------------
+
 root@huso:~# kubectl describe node huso
 
 -------------------------network tercih kullanımı-----------------------------
+
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 root@huso:~# kubectl get nodes
@@ -64,11 +68,13 @@ huso   Ready    control-plane,master   14m   v1.20.1
 
 kubectl get pods -A
 
---------------------------tab ile otomatik tamamlamak için----------------------------------
+--------------------------tab ile otomatik tamamlamak için------------------------
+
 echo '' >> ~/.bashrc
 echo 'source <(kubeadm completion bash)' >> ~/.bashrc
 echo 'source <(kubectl completion bash)' >> ~/.bashrc
 source ~/.bashrc
+
 -----------------------------------------------------------------------------------
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
@@ -79,22 +85,26 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 kubectl describe pods -n ingress-nginx ingress-nginx-controller-c4f944d4d-tj9ns
 
 ----------------------------masterı node olarak kullanabilmek için------------------------------
+
 kubectl taint nodes --all node-role.kubernetes.io/master-
+
 -----------------------------------------------------------------------------------
 
 kubectl get services -A -w
 
 -----------------------------metallb kurulum network----------------------------------------------
+
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
 # On first install only
 kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
 
-
 ----------------------------------------------elle çalıştırmak icin------------------------
+
 root@huso:~# kubectl proxy --disable-filter=true --address='192.168.1.201'
 
 -------------------------------kubernetes dashboard kullanıcı-----------------------------
+
 root@huso:~# 
 
 cat <<EOF | kubectl apply -f -
@@ -121,8 +131,10 @@ subjects:
   name: admin-user
   namespace: kubernetes-dashboard
 EOF
+
 ---------------------------------SSL------------------------------------
-openssl req -x509 -new -newkey rsa:4096 -nodes -sha256 -days 3650  -subj "/CN=*.turkai.com" -addext subjectAltName=DNS:*.turkai.com -keyout tls.key -out tls.crt
+
+openssl req -x509 -new -newkey rsa:4096 -nodes -sha256 -days 3650  -subj "/CN=*.husoyargic.com" -addext subjectAltName=DNS:*.husoyargic.com -keyout tls.key -out tls.crt
 kubectl create secret generic husoyargic --namespace ingress-nginx --from-file=tls.crt --from-file=tls.key
 kubectl delete secrets -n ingress-nginx husoyargic
 kubectl create secret tls husoyargic --namespace ingress-nginx --cert=tls.crt --key=tls.key
